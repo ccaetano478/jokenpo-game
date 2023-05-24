@@ -1,11 +1,11 @@
 package br.anhembi.jokenpogame.web;
 
+import br.anhembi.jokenpogame.controller.MoveController;
 import br.anhembi.jokenpogame.model.Game;
 import br.anhembi.jokenpogame.model.GameLobbyMonitor;
 import br.anhembi.jokenpogame.model.MessageType;
 import br.anhembi.jokenpogame.model.Player;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
@@ -40,13 +40,19 @@ public class State {
         if (game.getStatus().equals(MessageType.FINISHED)) {
             throw new RuntimeException("Game is already finished");
         }
+        game.setPlayer1(players.get(0));
+        game.setPlayer2(players.get(1));
 
         Player winner = checkWinner(game.getPlayer1(), game.getPlayer2());
 
         if (winner == null ) {
+            game.setStatus(MessageType.FINISHED);
             game.setWinner("Empate");
+            MoveController.playersThatMoved = null;
         } else {
+            game.setStatus(MessageType.FINISHED);
             game.setWinner(winner.getLogin());
+            MoveController.playersThatMoved = null;
         }
 
         GameLobbyMonitor.getInstance().setGame(game);
@@ -57,31 +63,31 @@ public class State {
         String inputP1 = p1.getInput();
         String inputP2 = p2.getInput();
 
-        if (inputP1.equals("pedra") && inputP2.equals("pedra") ){
+        if (inputP1.equals("stone") && inputP2.equals("stone") ){
             return null;
         }
-        if (inputP1.equals("pedra") && inputP2.equals("tesoura") ){
+        if (inputP1.equals("stone") && inputP2.equals("scissors") ){
             return p1;
         }
-        if (inputP1.equals("pedra") && inputP2.equals("papel") ){
+        if (inputP1.equals("stone") && inputP2.equals("paper") ){
             return p2;
         }
-        if (inputP1.equals("tesoura") && inputP2.equals("tesoura") ){
+        if (inputP1.equals("scissors") && inputP2.equals("scissors") ){
             return null;
         }
-        if (inputP1.equals("tesoura") && inputP2.equals("pedra") ){
+        if (inputP1.equals("scissors") && inputP2.equals("stone") ){
             return p2;
         }
-        if (inputP1.equals("tesoura") && inputP2.equals("papel") ){
+        if (inputP1.equals("scissors") && inputP2.equals("papel") ){
             return p1;
         }
-        if (inputP1.equals("papel") && inputP2.equals("papel") ){
+        if (inputP1.equals("paper") && inputP2.equals("paper") ){
             return null;
         }
-        if (inputP1.equals("papel") && inputP2.equals("tesoura") ){
+        if (inputP1.equals("paper") && inputP2.equals("scissors") ){
             return p2;
         }
-        if (inputP1.equals("papel") && inputP2.equals("pedra") ){
+        if (inputP1.equals("paper") && inputP2.equals("stone") ){
             return p1;
         }
        return null;
