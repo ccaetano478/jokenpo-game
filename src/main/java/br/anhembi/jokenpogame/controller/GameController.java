@@ -46,6 +46,14 @@ public class GameController {
         return ResponseEntity.ok(game);
     }
 
+    @PostMapping("/pc")
+    public ResponseEntity<Game> playPC(@RequestBody Player player)  {
+        log.info("conectando a um jogo existente");
+        Game game = state.initGame(player);
+        simpMessagingTemplate.convertAndSend("/topic/game-progress/" + game.getId(), game);
+        return ResponseEntity.ok(game);
+    }
+
 
 
 

@@ -10,6 +10,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,18 @@ public class MoveController {
         if(playersThatMoved.size() == 2){
             state.gamePlay(playersThatMoved);
         }
+        simpMessagingTemplate.convertAndSend("/topic/game-progress/" + game.getId(), game);
+        return game;
+    }
+
+    @MessageMapping("/pc")
+    @SendTo("topic/game-progress/")
+
+    public Game move (@Payload List<Player> players)  {
+        Game game = GameLobbyMonitor.getInstance().getGames().get(players.get(0).getGameId());
+        game.setStatus(MessageType.MOVE);
+        state.gamePlay(players);
+
         simpMessagingTemplate.convertAndSend("/topic/game-progress/" + game.getId(), game);
         return game;
     }

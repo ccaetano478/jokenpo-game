@@ -5,6 +5,7 @@ let username
 let gameId
 const url = 'http://localhost:8080';
 let gameStatus;
+let gameMode;
 
 const connectSocket = () =>{
     let socket = new SockJS(url + "/ws");
@@ -23,7 +24,11 @@ const displayResponse = (data) => {
     const waitingPage = document.querySelector('#waiting-players')
     const chatPage = document.querySelector('#chat-page')
 
-    if(data.player2 == null || data.player2 == undefined){
+    if(gameMode == "pc"){
+        data.player2 = "pc"
+    }
+
+    if(data.player2 == null || data.player2 == undefined ){
         login.classList.add('hide')
         waitingPage.classList.remove('hide')
         waitingPage.style.color = "white"
@@ -47,7 +52,15 @@ const displayResponse = (data) => {
 
 const setInput = (inputKey) => {
     let playerInput = {"login": username, "input": inputKey, "gameId": gameId}
-    stompClient.send("/app/move", {}, JSON.stringify(playerInput))
+    if(gameMode == "mp"){
+        stompClient.send("/app/move", {}, JSON.stringify(playerInput))
+    }
+    if(gameMode == "pc"){
+        const moves = ["pape", "stone", "scissors"]
+        const playerPC = {"login": "PC", "input": moves[Math.floor(Math.random() * moves.length)], "gameId": gameId}
+        const montarJSON = [playerInput,playerPC ]
+        stompClient.send("/app/pc", {}, JSON.stringify(montarJSON))
+    }
 }
 
 
@@ -116,8 +129,40 @@ const hashCode = (str) => {
     return hash
 }
 
+const playPC = () => {
+    gameMode = "pc"
+    username = document.querySelector('#username').value.trim()
+
+    if (username) {
+        $.ajax({
+            url: url + "/game/pc",
+            type: 'POST',
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify({
+                "login": username
+            }),
+            success: function (data) {
+
+                console.log(data);
+                gameId = data.id;
+                connectSocket(gameId);
+                alert("Voce ingressou no jogo de id: " + data.id);
+                displayResponse(data)
+
+            },
+            error: function (error) {
+                console.log(error);
+            }
+        })
+    }else{
+        alert("Por favor insira o login")
+    }
+}
+
 
 const joinGame = () => {
+    gameMode = "mp"
     username = document.querySelector('#username').value.trim()
     //mostrar tela de aguardando novo jogador
     if (username) {
@@ -154,7 +199,7 @@ const joinGame = () => {
 
 
 const createGame = (event) => {
-    //pegar meu username
+    gameMode = "mp"
     username = document.querySelector('#username').value.trim()
     //mostrar tela de aguardando novo jogador
     if (username) {
